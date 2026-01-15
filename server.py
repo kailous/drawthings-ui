@@ -2,6 +2,7 @@
 import json
 import mimetypes
 import os
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, quote, urlparse, urlunparse
@@ -12,12 +13,56 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PAYLOAD_PATH = os.path.join(BASE_DIR, "payload.json")
 INDEX_PATH = os.path.join(BASE_DIR, "index.html")
 CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
+LANG_DIR = os.path.join(BASE_DIR, "lang")
 
 DEFAULT_CONFIG = {
     "draw_things_url": "http://127.0.0.1:3883",
     "history_dir": "/Volumes/AIGC/Output",
     "port": 8080,
 }
+
+CLI_LANG = "zh"
+CLI_TEXT = {}
+
+def _parse_cli_lang(argv):
+    for arg in argv[1:]:
+        if arg in ("en", "zh"):
+            return arg
+        if arg.startswith("--lang="):
+            value = arg.split("=", 1)[1].strip()
+            if value in ("en", "zh"):
+                return value
+    return "zh"
+
+def _load_cli_lang(lang_code):
+    path = os.path.join(LANG_DIR, f"{lang_code}.json")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except OSError:
+        return {}
+
+def _init_cli_lang(argv):
+    global CLI_LANG, CLI_TEXT
+    CLI_LANG = _parse_cli_lang(argv)
+    CLI_TEXT = _load_cli_lang(CLI_LANG)
+
+def _t(key, params=None):
+    text = CLI_TEXT.get(key, key)
+    if params:
+        for k, v in params.items():
+            text = text.replace(f"{{{k}}}", str(v))
+    return text
+
+def _safe_preview(value, limit=200):
+    if isinstance(value, bytes):
+        text = value.decode("utf-8", "replace")
+    else:
+        text = str(value)
+    if len(text) > limit:
+        text = text[:limit] + "..."
+    return text
 
 def _load_config():
     config = dict(DEFAULT_CONFIG)
@@ -31,7 +76,7 @@ def _load_config():
     except FileNotFoundError:
         pass
     except (OSError, json.JSONDecodeError):
-        print("Warning: failed to read config.json, using defaults.")
+        print(_t("cli_config_invalid"))
 
     env_url = os.getenv("DRAW_THINGS_URL")
     if env_url:
@@ -93,10 +138,26 @@ def _draw_things_url_for_payload(payload):
 
     return urlunparse((parsed.scheme, parsed.netloc, full_path, parsed.params, parsed.query, parsed.fragment))
 
-_CONFIG = _load_config()
-DRAW_THINGS_URL = _normalize_draw_things_url(_CONFIG["draw_things_url"])
-HISTORY_DIR = _CONFIG["history_dir"]
-PORT = _CONFIG["port"]
+DRAW_THINGS_URL = DEFAULT_CONFIG["draw_things_url"]
+HISTORY_DIR = DEFAULT_CONFIG["history_dir"]
+PORT = DEFAULT_CONFIG["port"]
+
+def _apply_config(config):
+    global DRAW_THINGS_URL, HISTORY_DIR, PORT
+    DRAW_THINGS_URL = _normalize_draw_things_url(config.get("draw_things_url"))
+    HISTORY_DIR = config.get("history_dir", DEFAULT_CONFIG["history_dir"])
+    PORT = config.get("port", DEFAULT_CONFIG["port"])
+
+def _print_startup():
+    line = "=" * 40
+    print(line)
+    print(_t("cli_title"))
+    print(_t("cli_lang", {"lang": CLI_LANG}))
+    print(_t("cli_config_path", {"path": CONFIG_PATH}))
+    print(_t("cli_draw_url", {"url": DRAW_THINGS_URL}))
+    print(_t("cli_history_dir", {"path": HISTORY_DIR}))
+    print(_t("cli_port_hint", {"port": PORT}))
+    print(line)
 
 def _history_state():
     if not HISTORY_DIR or not os.path.isdir(HISTORY_DIR):
@@ -120,11 +181,15 @@ def _history_file_path(name):
 
 class Handler(BaseHTTPRequestHandler):
     def _send(self, status, body, content_type="text/plain; charset=utf-8"):
-        self.send_response(status)
-        self.send_header("Content-Type", content_type)
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.send_response(status)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError):
+            return False
+        return True
 
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -225,25 +290,38 @@ class Handler(BaseHTTPRequestHandler):
                     body = str(e).encode("utf-8")
                 content_type = e.headers.get("Content-Type", "text/plain; charset=utf-8")
                 self._send(e.code, body, content_type)
-                print(f"Upstream error {e.code} from {target_url}: {body[:200]!r}")
+                print(_t("cli_upstream_error", {
+                    "code": e.code,
+                    "url": target_url,
+                    "body": _safe_preview(body),
+                }))
             except URLError as e:
                 msg = str(e).encode("utf-8")
                 self._send(502, msg)
-                print(f"Upstream connection error: {e}")
+                print(_t("cli_upstream_connect", {"error": e}))
         except Exception as e:
             self._send(500, str(e).encode("utf-8"))
-            print(f"Server error: {e}")
+            print(_t("cli_server_error", {"error": e}))
 
 def main():
+    _init_cli_lang(sys.argv)
+    config = _load_config()
+    _apply_config(config)
+    _print_startup()
     for offset in range(0, 10):
         try:
             server = ThreadingHTTPServer(("0.0.0.0", PORT + offset), Handler)
-            print(f"Server running at http://127.0.0.1:{PORT + offset}")
-            server.serve_forever()
+            print(_t("cli_server_start", {"port": PORT + offset}))
+            try:
+                server.serve_forever()
+            except KeyboardInterrupt:
+                print(_t("cli_server_stop"))
+            finally:
+                server.server_close()
             return
         except OSError:
             continue
-    print("Could not find open port")
+    print(_t("cli_no_port"))
 
 if __name__ == "__main__":
     main()

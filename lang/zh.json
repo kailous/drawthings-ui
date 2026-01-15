@@ -18,5 +18,18 @@
   "msg_server_err": "服务器请求失败",
   "msg_hist_fail": "加载历史记录失败",
   "msg_nav_first": "已经是第一张了",
-  "msg_nav_last": "已经是最后一张了"
+  "msg_nav_last": "已经是最后一张了",
+  "cli_title": "Draw Things UI 服务器",
+  "cli_lang": "语言: {lang}",
+  "cli_config_path": "配置文件: {path}",
+  "cli_draw_url": "Draw Things 地址: {url}",
+  "cli_history_dir": "历史目录: {path}",
+  "cli_port_hint": "端口: {port} (自动尝试 +0..+9)",
+  "cli_server_start": "服务器已启动: http://127.0.0.1:{port}",
+  "cli_server_stop": "服务器已停止",
+  "cli_no_port": "未找到可用端口",
+  "cli_config_invalid": "警告: 读取 config.json 失败，已使用默认配置。",
+  "cli_upstream_error": "上游错误 {code} 来自 {url}: {body}",
+  "cli_upstream_connect": "上游连接错误: {error}",
+  "cli_server_error": "服务器错误: {error}"
 }

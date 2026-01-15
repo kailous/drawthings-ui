@@ -16,3 +16,6 @@ Draw Things HTTP API 的web ui，直接提交json参数，省略复杂的配置�
 当请求 payload 中包含 `init_images` 时会自动走 `/sdapi/v1/img2img`，否则走 `/sdapi/v1/txt2img`。
 
 如需临时覆盖，可使用环境变量 `DRAW_THINGS_URL`、`HISTORY_DIR`、`PORT`。
+
+## 运行
+默认终端输出为中文，可使用 `python3 server.py en` 切换为英文输出。
