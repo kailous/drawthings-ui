@@ -2,6 +2,9 @@
 import json
 import mimetypes
 import os
+import shutil
+import socket
+import subprocess
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError, URLError
@@ -63,6 +66,53 @@ def _safe_preview(value, limit=200):
     if len(text) > limit:
         text = text[:limit] + "..."
     return text
+
+def _lan_ipv4_list():
+    ips = []
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(("8.8.8.8", 80))
+        ips.append(sock.getsockname()[0])
+        sock.close()
+    except OSError:
+        pass
+
+    if ips:
+        return ips
+
+    try:
+        hostname = socket.gethostname()
+        for info in socket.getaddrinfo(hostname, None, socket.AF_INET):
+            ip = info[4][0]
+            if ip and not ip.startswith("127."):
+                return [ip]
+    except OSError:
+        pass
+
+    return []
+
+def _print_qr(url):
+    try:
+        import qrcode  # type: ignore
+
+        qr = qrcode.QRCode(border=1)
+        qr.add_data(url)
+        qr.make(fit=True)
+        for row in qr.get_matrix():
+            print("".join("██" if cell else "  " for cell in row))
+        return True
+    except Exception:
+        pass
+
+    exe = shutil.which("qrencode")
+    if exe:
+        try:
+            subprocess.run([exe, "-t", "UTF8", url], check=True)
+            return True
+        except Exception:
+            pass
+
+    return False
 
 def _load_config():
     config = dict(DEFAULT_CONFIG)
@@ -158,6 +208,22 @@ def _print_startup():
     print(_t("cli_history_dir", {"path": HISTORY_DIR}))
     print(_t("cli_port_hint", {"port": PORT}))
     print(line)
+
+def _print_access_info(port):
+    print(_t("cli_access_header"))
+    print(_t("cli_access_local", {"port": port}))
+    ips = _lan_ipv4_list()
+    if ips:
+        ip = ips[0]
+        print(_t("cli_access_lan", {"url": f"http://{ip}:{port}"}))
+    else:
+        print(_t("cli_access_lan_none"))
+
+    url = f"http://{ips[0]}:{port}" if ips else f"http://127.0.0.1:{port}"
+    print(_t("cli_qr_label", {"url": url}))
+    if not _print_qr(url):
+        print(_t("cli_qr_unavailable"))
+        print(_t("cli_qr_hint"))
 
 def _history_state():
     if not HISTORY_DIR or not os.path.isdir(HISTORY_DIR):
@@ -311,7 +377,9 @@ def main():
     for offset in range(0, 10):
         try:
             server = ThreadingHTTPServer(("0.0.0.0", PORT + offset), Handler)
-            print(_t("cli_server_start", {"port": PORT + offset}))
+            actual_port = PORT + offset
+            print(_t("cli_server_start", {"port": actual_port}))
+            _print_access_info(actual_port)
             try:
                 server.serve_forever()
             except KeyboardInterrupt:

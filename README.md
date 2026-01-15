@@ -19,3 +19,4 @@ Draw Things HTTP API 的web ui，直接提交json参数，省略复杂的配置�
 
 ## 运行
 默认终端输出为中文，可使用 `python3 server.py en` 切换为英文输出。
+启动后会显示局域网访问地址，并尝试输出二维码；如需二维码，可安装 `qrcode`（`pip3 install qrcode`）。
