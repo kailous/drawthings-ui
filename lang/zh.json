@@ -1,0 +1,22 @@
+{
+  "app_title": "Prompt Studio",
+  "app_subtitle": "Draw Things 本地控制台",
+  "action_reload": "刷新",
+  "label_payload": "JSON 配置 (Payload)",
+  "action_format": "格式化",
+  "placeholder_input": "点击此处粘贴 JSON (会自动清空旧内容)...",
+  "btn_generate": "生成图像",
+  "btn_generating": "正在生成...",
+  "label_current": "本次生成",
+  "label_history": "历史记录",
+  "state_no_history": "暂无历史记录",
+  "msg_json_invalid": "JSON 格式错误，请检查语法",
+  "msg_input_empty": "请先粘贴 JSON 配置",
+  "msg_format_ok": "格式化成功",
+  "msg_gen_success": "生成完成：{n} 张图片",
+  "msg_gen_empty": "生成完成，但未返回图片",
+  "msg_server_err": "服务器请求失败",
+  "msg_hist_fail": "加载历史记录失败",
+  "msg_nav_first": "已经是第一张了",
+  "msg_nav_last": "已经是最后一张了"
+}

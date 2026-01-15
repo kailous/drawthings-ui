@@ -1,0 +1,22 @@
+{
+  "app_title": "Prompt Studio",
+  "app_subtitle": "Draw Things Local",
+  "action_reload": "Refresh History",
+  "label_payload": "JSON Payload",
+  "action_format": "Format",
+  "placeholder_input": "Tap to paste JSON (clears old content)...",
+  "btn_generate": "Generate",
+  "btn_generating": "Generating...",
+  "label_current": "Current Result",
+  "label_history": "History",
+  "state_no_history": "No history records found",
+  "msg_json_invalid": "Invalid JSON format",
+  "msg_input_empty": "Please paste JSON config first",
+  "msg_format_ok": "Formatted successfully",
+  "msg_gen_success": "Generated {n} images",
+  "msg_gen_empty": "Finished, but no images returned",
+  "msg_server_err": "Server request failed",
+  "msg_hist_fail": "Failed to load history",
+  "msg_nav_first": "Already at the first image",
+  "msg_nav_last": "Already at the last image"
+}
