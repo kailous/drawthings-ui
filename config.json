@@ -1,5 +1,5 @@
 {
-  "draw_things_url": "http://127.0.0.1:3883/sdapi/v1/txt2img",
-  "history_dir": "/Volumes/AIGC/Output2",
+  "draw_things_url": "http://127.0.0.1:3883",
+  "history_dir": "/Volumes/AIGC/Output",
   "port": 8080
 }

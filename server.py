@@ -4,7 +4,7 @@ import mimetypes
 import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError, URLError
-from urllib.parse import parse_qs, quote, urlparse
+from urllib.parse import parse_qs, quote, urlparse, urlunparse
 from urllib.request import Request, urlopen
 
 # --- 配置部分 ---
@@ -14,7 +14,7 @@ INDEX_PATH = os.path.join(BASE_DIR, "index.html")
 CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
 
 DEFAULT_CONFIG = {
-    "draw_things_url": "http://127.0.0.1:3883/sdapi/v1/txt2img",
+    "draw_things_url": "http://127.0.0.1:3883",
     "history_dir": "/Volumes/AIGC/Output",
     "port": 8080,
 }
@@ -55,8 +55,46 @@ def _load_config():
 
     return config
 
+def _normalize_draw_things_url(value):
+    if not isinstance(value, str):
+        return DEFAULT_CONFIG["draw_things_url"]
+    raw = value.strip()
+    if not raw:
+        return DEFAULT_CONFIG["draw_things_url"]
+    return raw
+
+def _draw_things_url_for_payload(payload):
+    raw = DRAW_THINGS_URL
+    parsed = urlparse(raw)
+    if not parsed.scheme or not parsed.netloc:
+        return raw
+
+    path = parsed.path or ""
+    is_img2img = isinstance(payload, dict) and bool(payload.get("init_images"))
+    endpoint = "img2img" if is_img2img else "txt2img"
+
+    base_path = ""
+    trimmed = path.rstrip("/")
+    if trimmed in ("", "/"):
+        base_path = ""
+    elif trimmed.endswith("/sdapi/v1/txt2img"):
+        base_path = trimmed[:-len("/txt2img")]
+    elif trimmed.endswith("/sdapi/v1/img2img"):
+        base_path = trimmed[:-len("/img2img")]
+    elif trimmed.endswith("/sdapi/v1"):
+        base_path = trimmed
+    else:
+        return raw
+
+    if not base_path:
+        full_path = f"/sdapi/v1/{endpoint}"
+    else:
+        full_path = f"{base_path}/{endpoint}"
+
+    return urlunparse((parsed.scheme, parsed.netloc, full_path, parsed.params, parsed.query, parsed.fragment))
+
 _CONFIG = _load_config()
-DRAW_THINGS_URL = _CONFIG["draw_things_url"]
+DRAW_THINGS_URL = _normalize_draw_things_url(_CONFIG["draw_things_url"])
 HISTORY_DIR = _CONFIG["history_dir"]
 PORT = _CONFIG["port"]
 
@@ -171,16 +209,30 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(400, b"Invalid JSON")
                 return
             
+            target_url = _draw_things_url_for_payload(json_payload)
             req = Request(
-                DRAW_THINGS_URL,
+                target_url,
                 data=json.dumps(json_payload).encode("utf-8"),
                 headers={"Content-Type": "application/json"},
                 method="POST",
             )
-            with urlopen(req, timeout=300) as resp:
-                self._send(200, resp.read(), "application/json")
+            try:
+                with urlopen(req, timeout=300) as resp:
+                    self._send(200, resp.read(), "application/json")
+            except HTTPError as e:
+                body = e.read() if hasattr(e, "read") else b""
+                if not body:
+                    body = str(e).encode("utf-8")
+                content_type = e.headers.get("Content-Type", "text/plain; charset=utf-8")
+                self._send(e.code, body, content_type)
+                print(f"Upstream error {e.code} from {target_url}: {body[:200]!r}")
+            except URLError as e:
+                msg = str(e).encode("utf-8")
+                self._send(502, msg)
+                print(f"Upstream connection error: {e}")
         except Exception as e:
             self._send(500, str(e).encode("utf-8"))
+            print(f"Server error: {e}")
 
 def main():
     for offset in range(0, 10):
