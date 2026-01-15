@@ -22,12 +22,15 @@
         }
     };
 
-    const CONFIG = { BATCH_SIZE: 40 };
+    const CONFIG = { BATCH_SIZE: 40, PRELOAD_COUNT: 12, LAZY_MARGIN: '600px' };
     
     const state = {
         historyData: [],
         renderedCount: 0,
-        isGenerating: false
+        isGenerating: false,
+        imageElements: [],
+        preloadCursor: 0,
+        preloadPrimed: false
     };
 
     const $ = (id) => document.getElementById(id);
@@ -52,6 +55,56 @@
         el.textContent = msg;
         els.toastBox.appendChild(el);
         setTimeout(() => { el.style.opacity='0'; el.style.transform='translateY(20px)'; setTimeout(()=>el.remove(),300); }, 2000);
+    };
+
+    const imageObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const img = entry.target;
+            const src = img.dataset.src;
+            if (!src) {
+                imageObserver.unobserve(img);
+                return;
+            }
+            img.src = src;
+            img.removeAttribute('data-src');
+            imageObserver.unobserve(img);
+        });
+    }, { rootMargin: CONFIG.LAZY_MARGIN });
+
+    const handleImageDone = (img) => {
+        img.classList.add('loaded');
+        const index = parseInt(img.dataset.index || '', 10);
+        if (!Number.isNaN(index)) maybePreloadNextBatch(index);
+    };
+
+    const forceLoadImage = (img) => {
+        const src = img.dataset.src;
+        if (!src) return;
+        img.loading = 'eager';
+        img.src = src;
+        img.removeAttribute('data-src');
+        imageObserver.unobserve(img);
+    };
+
+    const preloadRange = (start, count) => {
+        const end = Math.min(start + count, state.historyData.length);
+        for (let i = start; i < end; i += 1) {
+            const img = state.imageElements[i];
+            if (img) forceLoadImage(img);
+        }
+    };
+
+    const maybePreloadNextBatch = (index) => {
+        if (!state.historyData.length) return;
+        const triggerOffset = CONFIG.PRELOAD_COUNT - 1;
+        while (
+            state.preloadCursor < state.historyData.length &&
+            index >= state.preloadCursor - triggerOffset
+        ) {
+            preloadRange(state.preloadCursor, CONFIG.PRELOAD_COUNT);
+            state.preloadCursor += CONFIG.PRELOAD_COUNT;
+        }
     };
 
     // --- 实例化查看器 ---
@@ -131,6 +184,9 @@
             els.historyCount.textContent = state.historyData.length;
             els.historyGrid.innerHTML = '';
             state.renderedCount = 0;
+            state.imageElements = [];
+            state.preloadPrimed = false;
+            state.preloadCursor = Math.min(CONFIG.PRELOAD_COUNT, state.historyData.length);
             els.loaderTrigger.style.display = 'flex';
             
             if (state.historyData.length === 0) {
@@ -144,12 +200,31 @@
     };
     $('btn-reload-history').onclick = loadHistory;
 
-    const createImageCard = (url, container, onClick) => {
+    const createImageCard = (url, container, onClick, options = {}) => {
         const card = document.createElement('div');
         card.className = 'img-card';
         const img = document.createElement('img');
-        if (url.startsWith('data:')) { img.src = url; img.classList.add('loaded'); }
-        else { img.dataset.src = url; img.loading = "lazy"; img.onload=()=>img.classList.add('loaded'); img.src = url; }
+        img.decoding = 'async';
+        const forceLoad = options.forceLoad === true;
+        const index = Number.isFinite(options.index) ? options.index : null;
+        if (url.startsWith('data:')) {
+            img.src = url;
+            img.classList.add('loaded');
+        } else {
+            img.dataset.src = url;
+            img.loading = forceLoad ? 'eager' : 'lazy';
+            if (index !== null) {
+                img.dataset.index = String(index);
+                state.imageElements[index] = img;
+            }
+            img.onload = () => handleImageDone(img);
+            img.onerror = () => handleImageDone(img);
+            if (forceLoad || (index !== null && index < state.preloadCursor)) {
+                forceLoadImage(img);
+            } else {
+                imageObserver.observe(img);
+            }
+        }
         card.appendChild(img);
         card.onclick = onClick;
         container.appendChild(card);
@@ -164,10 +239,20 @@
         nextBatch.forEach((item, idx) => {
             const globalIndex = state.renderedCount + idx;
             // 点击历史记录时，把完整的历史数据传给 Viewer
-            createImageCard(item.url, fragment, () => viewer.open(state.historyData, globalIndex));
+            createImageCard(
+                item.url,
+                fragment,
+                () => viewer.open(state.historyData, globalIndex),
+                { forceLoad: globalIndex < CONFIG.PRELOAD_COUNT, index: globalIndex }
+            );
         });
         els.historyGrid.appendChild(fragment);
         state.renderedCount += nextBatch.length;
+        if (!state.preloadPrimed && state.historyData.length > CONFIG.PRELOAD_COUNT) {
+            preloadRange(CONFIG.PRELOAD_COUNT, CONFIG.PRELOAD_COUNT);
+            state.preloadCursor = Math.min(CONFIG.PRELOAD_COUNT * 2, state.historyData.length);
+            state.preloadPrimed = true;
+        }
     };
 
     const observer = new IntersectionObserver((entries) => {

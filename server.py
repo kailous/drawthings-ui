@@ -95,7 +95,7 @@ def _print_qr(url):
     try:
         import qrcode  # type: ignore
 
-        qr = qrcode.QRCode(border=1)
+        qr = qrcode.QRCode(border=2, box_size=1)
         qr.add_data(url)
         qr.make(fit=True)
         for row in qr.get_matrix():
@@ -246,16 +246,42 @@ def _history_file_path(name):
     return os.path.join(HISTORY_DIR, name)
 
 class Handler(BaseHTTPRequestHandler):
-    def _send(self, status, body, content_type="text/plain; charset=utf-8"):
+    def _send(self, status, body, content_type="text/plain; charset=utf-8", headers=None):
         try:
             self.send_response(status)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
+            if headers:
+                for key, value in headers.items():
+                    self.send_header(key, value)
             self.end_headers()
             self.wfile.write(body)
         except (BrokenPipeError, ConnectionResetError):
             return False
         return True
+
+    def _send_file_cached(self, file_path, content_type, cache_seconds):
+        try:
+            stat = os.stat(file_path)
+        except OSError:
+            self._send(404, b"Not Found")
+            return
+
+        etag = f"\"{stat.st_mtime_ns}-{stat.st_size}\""
+        headers = {
+            "ETag": etag,
+            "Cache-Control": f"public, max-age={cache_seconds}",
+        }
+        if self.headers.get("If-None-Match") == etag:
+            self._send(304, b"", content_type, headers)
+            return
+
+        try:
+            with open(file_path, "rb") as f:
+                body = f.read()
+            self._send(200, body, content_type, headers)
+        except OSError:
+            self._send(500, b"Read Error")
 
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -281,12 +307,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path.endswith(".css"): mime = "text/css"
                 elif path.endswith(".js"): mime = "application/javascript"
                 elif path.endswith(".json"): mime = "application/json"
-                
-                try:
-                    with open(file_path, "rb") as f:
-                        self._send(200, f.read(), mime)
-                except OSError:
-                    self._send(500, b"Read Error")
+                self._send_file_cached(file_path, mime, cache_seconds=3600)
             else:
                 self._send(404, b"Not Found")
             return
@@ -294,14 +315,14 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/payload":
             try:
                 with open(PAYLOAD_PATH, "rb") as f:
-                    self._send(200, f.read(), "application/json; charset=utf-8")
+                    self._send(200, f.read(), "application/json; charset=utf-8", {"Cache-Control": "no-store"})
             except FileNotFoundError:
                 self._send(404, b"{}")
             return
 
         if path == "/history":
             state = _history_state()
-            self._send(200, json.dumps(state).encode("utf-8"), "application/json")
+            self._send(200, json.dumps(state).encode("utf-8"), "application/json", {"Cache-Control": "no-store"})
             return
 
         if path == "/history/image":
@@ -310,11 +331,7 @@ class Handler(BaseHTTPRequestHandler):
             fpath = _history_file_path(name)
             if fpath and os.path.isfile(fpath):
                 mime = mimetypes.guess_type(fpath)[0] or "application/octet-stream"
-                try:
-                    with open(fpath, "rb") as f:
-                        self._send(200, f.read(), mime)
-                except OSError:
-                    self._send(500, b"Read Error")
+                self._send_file_cached(fpath, mime, cache_seconds=86400)
             else:
                 self._send(404, b"Not Found")
             return
