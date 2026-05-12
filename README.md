@@ -12,6 +12,7 @@ The project is designed for local use first: generated images, prompt drafts, AP
 - Optional local case rating workflow.
 - Direct CLI submission without opening the Web UI.
 - Model search and download helper for Civitai and Hugging Face.
+- Draw Things current-model probe with a local discovered-model registry.
 - LAN address display and optional terminal QR code.
 
 ## Quick Start
@@ -127,6 +128,30 @@ python3 .skill/model_manager.py download --provider huggingface --repo-id owner/
 ```
 
 Model downloads default to `local_studio/models/`, which is ignored by Git. Use `CIVITAI_TOKEN`, `CIVITAI_API_TOKEN`, `HF_TOKEN`, or `HUGGINGFACE_TOKEN` for resources that require authentication.
+
+## Current Model Registry
+
+Some Draw Things versions do not expose a full installed-model list through the local HTTP API. The project can still record models as they appear in the current settings.
+
+Show the current model and generation settings:
+
+```bash
+python3 .skill/drawthings_probe.py current
+```
+
+Record the current model and LoRA list:
+
+```bash
+python3 .skill/drawthings_probe.py register
+```
+
+List locally discovered models:
+
+```bash
+python3 .skill/drawthings_probe.py list
+```
+
+The registry is stored at `local_studio/model_registry.json`, which is ignored by Git.
 
 ## Project Layout
 
