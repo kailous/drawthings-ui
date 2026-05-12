@@ -1,0 +1,10 @@
+{
+  "draw_things_url": "http://127.0.0.1:3883",
+  "history_dir": "local_studio/history",
+  "studio_dir": "local_studio",
+  "lan_ip": "",
+  "port": 8080,
+  "auto_launch_draw_things": true,
+  "draw_things_app_name": "Draw Things",
+  "draw_things_startup_wait": 12
+}

@@ -1,0 +1,16 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+config.json
+local_studio/
+studio/direct_outputs/
+studio/good_cases/
+studio/bad_cases/
+studio/good_cases/**/*.png
+studio/good_cases/**/*.jpg
+studio/good_cases/**/*.jpeg
+studio/good_cases/**/*.webp
+studio/bad_cases/**/*.png
+studio/bad_cases/**/*.jpg
+studio/bad_cases/**/*.jpeg
+studio/bad_cases/**/*.webp

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Draw Things Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/root.css?v=20260510-ui9" />
+    <link rel="stylesheet" href="css/style.css?v=20260510-ui9" />
+  </head>
+  <body class="font-display min-h-screen">
+    
+    <div class="app-card mx-auto max-w-4xl sm:rounded-3xl shadow-xl sm:my-4 overflow-hidden min-h-screen sm:min-h-0 transition-colors duration-300">
+      
+      <header class="app-header p-6 sticky top-0 z-20 backdrop-blur-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight" data-i18n="app_title">Prompt Studio</h1>
+            <p class="text-xs font-bold uppercase tracking-widest text-accent" data-i18n="app_subtitle">Draw Things Local</p>
+          </div>
+          <div class="flex gap-2">
+             <button id="btn-reload-history" class="btn-icon p-2 rounded-full transition" data-i18n-title="action_reload">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+             </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-4 sm:p-6 space-y-6 pb-20">
+        <section class="space-y-3">
+          <div class="flex justify-between items-end px-1">
+            <label class="text-sm font-bold opacity-80" data-i18n="label_payload">JSON Payload</label>
+            <button type="button" id="btn-format" class="text-xs text-accent font-medium px-2 py-1 rounded hover:bg-slate-100/10 transition" data-i18n="action_format">Format</button>
+          </div>
+          
+          <div class="relative group">
+            <textarea id="payload" rows="4" class="prompt-input block w-full rounded-2xl p-4 text-sm font-mono shadow-sm transition-all" data-i18n-placeholder="placeholder_input"></textarea>
+            <div id="payload-resize" class="payload-resize" aria-hidden="true"></div>
+          </div>
+
+          <button id="submit-btn" class="btn-primary w-full rounded-full px-6 py-4 text-sm font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+            <span id="btn-text" data-i18n="btn_generate">Generate</span>
+            <div class="spinner hidden" style="border-color: rgba(255,255,255,0.3); border-left-color: white;"></div>
+          </button>
+        </section>
+
+        <div id="results-area" class="hidden">
+           <div class="flex items-center gap-2 mb-3 px-1">
+              <div class="h-1.5 w-1.5 rounded-full bg-indigo-500"></div>
+              <h3 class="text-xs font-bold opacity-50 uppercase tracking-wider" data-i18n="label_current">Current</h3>
+           </div>
+           <div id="results-grid" class="results-grid"></div>
+        </div>
+
+        <div class="divider-line"></div>
+
+        <section>
+          <div class="flex items-baseline gap-2 mb-4 px-1">
+            <h2 class="text-lg font-bold" data-i18n="label_history">History</h2>
+            <span id="history-count" class="text-xs font-medium opacity-60 bg-slate-100/10 border border-slate-500/20 px-2 py-0.5 rounded-full">0</span>
+          </div>
+          
+          <div id="history-grid" class="results-grid"></div>
+          
+          <div id="infinite-scroll-trigger" class="h-20 flex items-center justify-center opacity-0 transition-opacity duration-300">
+             <div class="spinner"></div>
+          </div>
+          
+          <div id="history-empty" class="hidden text-center py-12 opacity-50 text-sm" data-i18n="state_no_history">No history</div>
+        </section>
+      </main>
+    </div>
+
+    <div id="image-modal" class="modal" aria-hidden="true">
+      <div class="absolute top-4 right-4 z-50">
+        <button id="modal-close" class="modal-btn">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      
+      <div class="modal-viewport">
+         <img id="modal-img" src="" alt="Preview" draggable="false" />
+      </div>
+
+      <aside id="prompt-panel" class="prompt-panel" aria-hidden="true">
+        <div class="prompt-panel-header">
+          <h2 data-i18n="label_prompt_json">Generation JSON</h2>
+          <div class="prompt-panel-controls">
+            <div class="prompt-panel-actions prompt-rating-actions">
+              <button id="prompt-good" type="button" data-i18n-title="action_good" aria-label="Good">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                  <path d="M27.6002 18.5998V11.3998C27.6002 8.41743 25.1826 5.99977 22.2002 5.99977L15.0002 22.1998V41.9998H35.9162C37.7113 42.0201 39.2471 40.7147 39.5162 38.9398L42.0002 22.7398C42.1587 21.6955 41.8506 20.6343 41.1576 19.8373C40.4645 19.0403 39.4564 18.5878 38.4002 18.5998H27.6002Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round"></path>
+                  <path d="M15 22.0001H10.194C8.08532 21.9628 6.2827 23.7095 6 25.7994V38.3994C6.2827 40.4894 8.08532 42.0367 10.194 41.9994H15V22.0001Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"></path>
+                </svg>
+              </button>
+              <span class="prompt-panel-action-divider" aria-hidden="true"></span>
+              <button id="prompt-bad" class="rating-down" type="button" data-i18n-title="action_bad" aria-label="Bad">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                  <path d="M27.6002 18.5998V11.3998C27.6002 8.41743 25.1826 5.99977 22.2002 5.99977L15.0002 22.1998V41.9998H35.9162C37.7113 42.0201 39.2471 40.7147 39.5162 38.9398L42.0002 22.7398C42.1587 21.6955 41.8506 20.6343 41.1576 19.8373C40.4645 19.0403 39.4564 18.5878 38.4002 18.5998H27.6002Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round"></path>
+                  <path d="M15 22.0001H10.194C8.08532 21.9628 6.2827 23.7095 6 25.7994V38.3994C6.2827 40.4894 8.08532 42.0367 10.194 41.9994H15V22.0001Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="prompt-panel-actions">
+              <button id="prompt-use" type="button" data-i18n-title="action_use_prompt" aria-label="Use">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                  <path d="M18 23.9372V10C18 6.68629 20.6863 4 24 4C27.3137 4 30 6.68629 30 10V12.0057" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
+                  <path d="M30 24.0034V37.9999C30 41.3136 27.3137 43.9999 24 43.9999C20.6863 43.9999 18 41.3136 18 37.9999V35.9699" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
+                  <path d="M24 30H9.98415C6.67919 30 4 27.3137 4 24C4 20.6863 6.67919 18 9.98415 18H11.9886" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
+                  <path d="M24 18H37.9888C41.3087 18 44 20.6863 44 24C44 27.3137 41.3087 30 37.9888 30H36.0663" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
+                </svg>
+              </button>
+              <span class="prompt-panel-action-divider" aria-hidden="true"></span>
+              <button id="prompt-copy" type="button" data-i18n-title="action_copy" aria-label="Copy">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                  <path d="M13 12.4316V7.8125C13 6.2592 14.2592 5 15.8125 5H40.1875C41.7408 5 43 6.2592 43 7.8125V32.1875C43 33.7408 41.7408 35 40.1875 35H35.5163" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M32.1875 13H7.8125C6.2592 13 5 14.2592 5 15.8125V40.1875C5 41.7408 6.2592 43 7.8125 43H32.1875C33.7408 43 35 41.7408 35 40.1875V15.8125C35 14.2592 33.7408 13 32.1875 13Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"></path>
+                </svg>
+              </button>
+              <span class="prompt-panel-action-divider" aria-hidden="true"></span>
+              <button id="prompt-close" type="button" data-i18n-title="action_close" aria-label="Close">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                  <path d="M14 14L34 34" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M14 34L34 14" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <pre id="prompt-json" class="prompt-json"></pre>
+      </aside>
+
+      <div id="feedback-modal" class="feedback-modal hidden" aria-hidden="true">
+        <div class="feedback-card">
+          <div class="feedback-header">
+            <h2 id="feedback-title" data-i18n="label_feedback">评分备注</h2>
+            <button id="feedback-close" type="button" data-i18n-title="action_close" aria-label="Close">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M14 14L34 34" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M14 34L34 14" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+          </div>
+          <textarea id="feedback-note" class="feedback-note" rows="5" data-i18n-placeholder="placeholder_feedback"></textarea>
+          <div class="feedback-actions">
+            <button id="feedback-cancel" type="button" data-i18n="action_cancel">取消</button>
+            <button id="feedback-save" type="button" data-i18n="action_save">保存</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="absolute bottom-8 left-0 right-0 flex justify-center gap-8 z-50 pointer-events-none">
+        <div class="bg-black/40 backdrop-blur-md rounded-full px-4 py-2 flex gap-6 pointer-events-auto border border-white/10">
+             <button id="modal-prev" style="background:none; border:none;"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+             <button id="modal-next" style="background:none; border:none;"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+        </div>
+      </div>
+
+      <div class="absolute bottom-8 right-4 z-50">
+        <button id="modal-prompt" class="modal-btn" data-i18n-title="action_view_prompt">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v5m0-8h.01M12 21a9 9 0 100-18 9 9 0 000 18z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-2 pointer-events-none w-full max-w-sm px-4"></div>
+
+    <script src="js/viewer.js?v=20260510-ui9"></script>
+    <script src="js/script.js?v=20260510-ui9"></script>
+  </body>
+</html>
