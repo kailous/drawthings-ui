@@ -8,4 +8,4 @@ Add one Markdown file per model. Use short, filesystem-safe names, for example:
 
 ## Notes
 
-No public model notes have been added yet.
+- [Janku V5 TrainedNoobAI v40](janku-v5-trainednoobai-v40.md)
