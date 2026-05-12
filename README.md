@@ -159,6 +159,7 @@ The registry is stored at `local_studio/model_registry.json`, which is ignored b
 - `webui/`: browser UI files.
 - `.skill/`: local helper scripts and workflow docs.
 - `studio/`: public tooling placeholders and feedback-analysis code.
+- `studio/model_notes/`: public-safe model capability and tuning notes.
 - `local_studio/`: private local payloads, outputs, and archives. This directory is ignored.
 - `local_studio/models/`: private downloaded models. This directory is ignored.
 - `config.example.json`: public configuration template.
