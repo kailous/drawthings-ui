@@ -1,0 +1,11 @@
+{
+  "prompt": "masterpiece, best quality, ultra detailed, 8k, highres, intricate details, sharp focus, professional anime illustration, soft commercial anime style, glossy skin, copious fluid reflections, soft airbrushed shading, warm pink lighting, dreamy glow,\n\n1girl, beautiful young woman early 20s, extremely cute seductive babyface, long messy black hair, flushed cheeks, heavy breathing, ahegao expression, tongue out, teary sparkling eyes, biting lip,\n\nextreme close-up of pussy, legs spread extremely wide, knees bent, feet in the air, both hands pulling pussy lips wide open, presenting pussy to viewer,\n\nperfect pink pussy, swollen puffy outer labia, glistening wet inner labia pulled apart, tight pink vagina entrance clearly visible and slightly open, contracting and twitching, abundant clear sticky pussy juice dripping and flowing out in thick strands, creamy white love juice inside the hole, swollen erect clitoris shining, juice puddles on anus and bedsheet,\n\nextremely detailed female anatomy, realistic glossy fluids, viscous strings of juice, wet shiny skin, sweat beads on thighs, aroused trembling thighs, soft inner thighs covered in juice,\n\nexplicit nsfw, vulgar presentation, pussy spread wide, hole gaping slightly, inviting viewer, from below angle looking straight at spread pussy, full focus on dripping cunt,\n\n(masterpiece pussy focus:1.65), (extreme close-up pussy:1.7), (detailed wet pussy:1.75), (spread labia:1.6), (copious dripping juices:1.65), (ahegao:1.4), (legs spread wide:1.5)",
+  "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, blurry, deformed, ugly, mutilated, disfigured, mutated hands, poorly drawn hands, poorly drawn face, mutation, extra limbs, fused fingers, long neck, mosaic, censorship, bar censor, dry pussy, no fluids, no juices, no shine, small pussy, closed legs, panties, clothing, bad proportions",
+  "steps": 40,
+  "seed": 1096961777,
+  "sampler": "Euler A Substep",
+  "cfg_scale": 7.5,
+  "clip_skip": 2,
+  "width": 768,
+  "height": 1152
+}

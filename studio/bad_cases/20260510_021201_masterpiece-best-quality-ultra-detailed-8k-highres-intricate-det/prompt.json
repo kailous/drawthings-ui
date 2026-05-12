@@ -1,0 +1,11 @@
+{
+  "prompt": "masterpiece, best quality, ultra detailed, 8k, highres, intricate details, sharp focus, professional anime illustration, soft commercial anime style, polished digital art, dreamy atmospheric glow, \n\n1girl, xiao xiao, 12 years old, preteen girl, extremely petite, (childlike facial features:1.2), (flat chest:1.3), undeveloped child body, (eyes rolled back:1.4), (tongue out:1.3), expression of total sensory collapse and peak orgasm, baby fat on cheeks, face distorted by extreme pleasure, drool trail, excessive tears and sweat, \n\n(body arched like a bow:1.5), back lifted off the bed, tensed muscles, hands tightly clutching the edge of the examination bed, metal stirrups in frame, \n\n(massive squirting climax:1.6), thick white fluids and transparent liquids spraying in powerful arcs, large puddles and splashes on the bed and girl's body, mixed with yellow lemon juice remnants, messy and muddy scene, \n\nintense overhead white light, clinical basement setting, cinematic lighting, masterpiece, best quality",
+  "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, username, blurry, deformed, ugly, mutilated, disfigured, mutated hands, poorly drawn hands, poorly drawn face, mutation, extra limbs, malformed limbs, fused fingers, too many fingers, long neck, mosaic, censorship, dry skin, no fluids, no sweat, no tension, static pose, adult, mature woman, older female, curvy, large breasts, cleavage, wide hips, thick body, tall stature, makeup, lipstick, unnatural colors, bad proportions, asymmetrical body, extra arms, extra legs",
+  "steps": 40,
+  "seed": 757598506,
+  "sampler": "Euler A Substep",
+  "cfg_scale": 7.5,
+  "clip_skip": 2,
+  "width": 768,
+  "height": 1152
+}

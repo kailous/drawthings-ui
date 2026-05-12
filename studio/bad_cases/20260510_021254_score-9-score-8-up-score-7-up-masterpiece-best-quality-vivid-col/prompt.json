@@ -1,0 +1,11 @@
+{
+  "prompt": "score_9, score_8_up, score_7_up, masterpiece, best quality, (vivid colors:1.1), detailed illustration, \n[角色描述: hair color, eye color, outfit], \n(extreme physiological reaction:1.4), (flushed skin:1.2), sweat beads on collarbone, heavy breathing, \n(intense interaction:1.5), (deep penetration:1.4), (fluid splashing from point of contact:1.5), viscous transparent liquids, \ndramatic rim lighting, cinematic shadows, detailed background",
+  "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, worst quality, low quality, jpeg artifacts, blurry, (plastic skin:1.3), (oily reflection:1.2), (over-saturated:1.2), (unnatural proportions:1.3)",
+  "steps": 40,
+  "seed": 138264561,
+  "sampler": "Euler Ancestral",
+  "cfg_scale": 4.5,
+  "clip_skip": 2,
+  "width": 832,
+  "height": 1216
+}

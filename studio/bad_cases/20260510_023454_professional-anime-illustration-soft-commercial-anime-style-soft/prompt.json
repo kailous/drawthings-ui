@@ -1,0 +1,11 @@
+{
+  "prompt": "professional anime illustration, soft commercial anime style, soft airbrushed shading, detailed skin texture, warm intimate lighting, 1girl, adult woman in her 20s, cute petite face, long messy black hair, flushed ahegao face, teary eyes, tongue out, completely naked, small natural breasts, narrow waist, petite slim body, mature adult proportions, natural torso, balanced anatomy, on all fours, man behind her doing doggystyle, thick cock inserted into her pussy, visible pussy lips stretched around the cock, detailed insertion point, his hands on her waist, natural readable limbs, full body view, whole body visible",
+  "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, cropped, worst quality, low quality, blurry, deformed, ugly, large breasts, huge breasts, heavy breasts, hanging breasts, oversized chest, breast deformation, belly bulge, x-ray view, cutaway view, internal anatomy view, broken spine, reversed legs, fused bodies, impossible pose, extra limbs, closed pussy",
+  "steps": 40,
+  "seed": 3665985373,
+  "sampler": "Euler A Substep",
+  "cfg_scale": 7.5,
+  "clip_skip": 2,
+  "width": 768,
+  "height": 1152
+}

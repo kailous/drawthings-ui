@@ -1,0 +1,11 @@
+{
+  "prompt": "masterpiece, best quality, ultra detailed, 8k, highres, intricate details, sharp focus, anime style, glossy sweaty skin, warm dim lighting, excessive pussy juice and sweat,\n\n1girl, 19yo petite girl, long messy black hair, extreme ahegao face, eyes rolled back, tongue hanging out drooling, completely naked,\n\non all fours in doggystyle but body twisted slightly toward viewer, ass up high and facing camera, legs spread wide, pussy fully exposed and stretched around thick veiny cock, pink wet pussy lips gripping the shaft, clit swollen, creamy juices dripping and squirting,\n\nlarge heavy breasts hanging down and swinging, erect puffy nipples, breasts squeezed and deformed by man's hands from behind, deep cleavage and breast flesh bulging between fingers,\n\nmassive belly bulge from deep penetration, pussy juice flooding down thighs, saliva dripping from tongue,\n\nfrom dynamic three-quarter rear side angle, clear view of both hanging breasts and spread pussy being fucked, explicit nsfw, vulgar, (detailed spread pussy:1.85), (visible pussy lips gripping cock:1.8), (hanging breasts squeezed hard:1.85), (breast deformation:1.75), (extreme ahegao:1.7), (squirting pussy:1.8), (glossy fluids everywhere:1.75)",
+  "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, cropped, worst quality, low quality, blurry, deformed, ugly, mosaic, censorship, bar censor, small penis, closed pussy, dry, no fluids, bad proportions, extra limbs, impossible pose, fused fingers, covered breasts, covered pussy",
+  "steps": 40,
+  "seed": 4109923626,
+  "sampler": "Euler A Substep",
+  "cfg_scale": 7.5,
+  "clip_skip": 2,
+  "width": 768,
+  "height": 1152
+}

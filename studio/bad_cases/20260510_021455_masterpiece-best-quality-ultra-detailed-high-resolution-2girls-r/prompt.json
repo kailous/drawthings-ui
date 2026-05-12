@@ -1,0 +1,11 @@
+{
+  "prompt": "masterpiece, best quality, ultra detailed, high resolution, 2girls, rem (re:zero), ram (re:zero), blue hair, pink hair, short hair, x hair ornament, hair ribbon, maid headdress, large breasts, erect nipples, completely nude, thighhighs discarded on floor, white thighhighs thrown aside, lesbian, scissoring, tribadism, pussy to pussy, clitoris to clitoris, rubbing pussies together, wet glistening pussy juices, aroused flushed faces, sweat drops, heavy breathing, open mouth, half-closed eyes, pleasure expression, spread legs, intertwined legs, crossed legs position, lying on bed facing each other, full body view, whole body visible, wide angle shot, from slightly above, entire scene in frame, detailed bedroom background, messy sheets and pillows, soft warm lighting, intimate atmosphere, detailed skin texture, glistening fluids between connected pussies, explicit nsfw, detailed female anatomy, realistic proportions, no cropping\n(full body:1.4), (wide shot:1.35), (wide angle:1.3), (entire scene:1.25), (two girls fully in frame:1.3), (from above view:1.2), (scissoring position:1.4), (tribadism:1.4), (pussy rubbing:1.35), (intertwined legs:1.3), (crossed legs scissor:1.3), (rem (re:zero):1.15), (ram (re:zero):1.15), (lesbian sex:1.2)",
+  "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, deformed, ugly, mutilated, disfigured, mutated hands, poorly drawn hands, poorly drawn face, mutation, extra limbs, malformed limbs, fused fingers, too many fingers, long neck, bad proportions, close-up, zoomed in, extreme close-up, macro shot, head out of frame, legs out of frame, bad composition, partial body, upper body only, cowboy shot, portrait, face focus, genitals focus only, multiple views, extra girls, 1girl",
+  "steps": 40,
+  "seed": 1327818345,
+  "sampler": "Euler Ancestral",
+  "cfg_scale": 7.5,
+  "clip_skip": 2,
+  "width": 1152,
+  "height": 768
+}

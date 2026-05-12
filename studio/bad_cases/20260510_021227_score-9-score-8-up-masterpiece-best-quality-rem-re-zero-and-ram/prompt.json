@@ -1,0 +1,11 @@
+{
+  "prompt": "score_9, score_8_up, masterpiece, best quality, rem (re:zero) and ram (re:zero) in maid outfits, intense mutual oral and fingering interaction on a messy bed, (extreme close-up on physical contact:1.4), (ram lying on back with legs spread wide:1.3), (rem kneeling between ram's legs focused on licking:1.4), (abundant viscous saliva and arousal fluids:1.5), mixture of transparent and white liquids, glistening strings connecting tongues and bodies, (flushed skin:1.2), heavy sweat beads on collarbones, expression of broken sobbing ecstasy, (vaginal entrance stretched by fingers:1.5), cinematic rim lighting, dramatic shadows, (vivid colors:1.1), dramatic shadows, cinematic lighting",
+  "negative_prompt": "lowres, bad anatomy, bad hands, (plastic skin:1.3), (oily reflection:1.2), makeup, lipstick, adult, curvy, large breasts",
+  "steps": 30,
+  "seed": 1852622310,
+  "sampler": "Euler Ancestral",
+  "cfg_scale": 4.5,
+  "clip_skip": 2,
+  "width": 832,
+  "height": 1216
+}

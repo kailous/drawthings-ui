@@ -1,0 +1,11 @@
+{
+  "prompt": "masterpiece, best quality, highres, 2girls, rem (re:zero), ram (re:zero), blue hair AND pink hair, short hair, x hair ornament, hair ribbon, maid headdress, large breasts, cleavage, thighhighs, white thighhighs, detached sleeves, frills, looking at another, lesbian, scissoring, tribadism, pussy rubbing, pussy to pussy, clitoris rubbing, wet pussy, aroused, flushed, sweat, heavy breathing, open mouth, half-closed eyes, nipples, nude, completely nude, spread legs, lying down, on bed, sheets, intimate, close-up on genitals, detailed pussy, glistening fluids, explicit, nsfw, detailed background bedroom, soft lighting\n(2girls:1.2), (scissoring:1.3), (tribadism:1.3), (pussy rubbing:1.25), (clitoris to clitoris:1.2), (wet fluids:1.15), (aroused expression:1.1), (rem (re:zero):1.1), (ram (re:zero):1.1)",
+  "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, deformed, ugly, mutilated, disfigured, mutated hands, poorly drawn hands, poorly drawn face, mutation, extra limbs, malformed limbs, fused fingers, too many fingers, long neck, bad proportions",
+  "steps": 40,
+  "seed": 2528024778,
+  "sampler": "Euler A Substep",
+  "cfg_scale": 7.5,
+  "clip_skip": 2,
+  "width": 896,
+  "height": 1152
+}

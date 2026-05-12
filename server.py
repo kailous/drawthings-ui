@@ -1,28 +1,43 @@
 #!/usr/bin/env python3
+import ipaddress
+import html
 import json
 import mimetypes
 import os
+import re
 import shutil
 import socket
+import struct
 import subprocess
 import sys
+import zlib
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from time import sleep as time_sleep
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, quote, urlparse, urlunparse
 from urllib.request import Request, urlopen
 
 # --- 配置部分 ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PAYLOAD_PATH = os.path.join(BASE_DIR, "payload.json")
-INDEX_PATH = os.path.join(BASE_DIR, "index.html")
+STUDIO_DIR = os.path.join(BASE_DIR, "studio")
+WEBUI_DIR = os.path.join(BASE_DIR, "webui")
+PAYLOAD_PATH = os.path.join(STUDIO_DIR, "payload.json")
+INDEX_PATH = os.path.join(WEBUI_DIR, "index.html")
 CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
-LANG_DIR = os.path.join(BASE_DIR, "lang")
+LANG_DIR = os.path.join(WEBUI_DIR, "lang")
 
 DEFAULT_CONFIG = {
     "draw_things_url": "http://127.0.0.1:3883",
     "history_dir": "/Volumes/AIGC/Output",
+    "lan_ip": "",
     "port": 8080,
+    "auto_launch_draw_things": True,
+    "draw_things_app_name": "Draw Things",
+    "draw_things_startup_wait": 12,
 }
+
+IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".webp")
 
 CLI_LANG = "zh"
 CLI_TEXT = {}
@@ -67,29 +82,150 @@ def _safe_preview(value, limit=200):
         text = text[:limit] + "..."
     return text
 
-def _lan_ipv4_list():
-    ips = []
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.connect(("8.8.8.8", 80))
-        ips.append(sock.getsockname()[0])
-        sock.close()
-    except OSError:
-        pass
+def _split_ip_list(value):
+    if not value:
+        return []
+    if isinstance(value, (list, tuple)):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if not isinstance(value, str):
+        return [str(value).strip()]
+    return [item.strip() for item in value.replace(",", " ").split() if item.strip()]
 
-    if ips:
-        return ips
+def _bool_config(value, default=False):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    if isinstance(value, (int, float)):
+        return bool(value)
+    text = str(value).strip().lower()
+    if text in ("1", "true", "yes", "on"):
+        return True
+    if text in ("0", "false", "no", "off"):
+        return False
+    return default
+
+def _ipv4_priority(ip):
+    try:
+        addr = ipaddress.IPv4Address(ip)
+    except ipaddress.AddressValueError:
+        return None
+    if addr.is_loopback or addr.is_unspecified or addr.is_multicast or addr.is_link_local:
+        return None
+    if ipaddress.IPv4Address("198.18.0.0") <= addr <= ipaddress.IPv4Address("198.19.255.255"):
+        return None
+    if addr in ipaddress.IPv4Network("192.0.2.0/24") or addr in ipaddress.IPv4Network("198.51.100.0/24") or addr in ipaddress.IPv4Network("203.0.113.0/24"):
+        return None
+    if addr in ipaddress.IPv4Network("192.168.0.0/16"):
+        return 0
+    if addr in ipaddress.IPv4Network("10.0.0.0/8"):
+        return 1
+    if addr in ipaddress.IPv4Network("172.16.0.0/12"):
+        return 2
+    if addr in ipaddress.IPv4Network("100.64.0.0/10"):
+        return 3
+    if addr.is_private:
+        return 4
+    if addr.is_global:
+        return 5
+    return 6
+
+def _read_cmd_output(cmd):
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        return result.stdout or ""
+    except Exception:
+        return ""
+
+def _collect_ips_from_ip():
+    exe = shutil.which("ip")
+    if not exe:
+        return []
+    output = _read_cmd_output([exe, "-4", "addr", "show"])
+    ips = []
+    for line in output.splitlines():
+        line = line.strip()
+        if line.startswith("inet "):
+            parts = line.split()
+            if len(parts) >= 2:
+                ips.append(parts[1].split("/")[0])
+    return ips
+
+def _collect_ips_from_ifconfig():
+    exe = shutil.which("ifconfig")
+    if not exe:
+        return []
+    output = _read_cmd_output([exe])
+    ips = []
+    for line in output.splitlines():
+        line = line.strip()
+        if line.startswith("inet "):
+            parts = line.split()
+            if len(parts) >= 2:
+                ips.append(parts[1])
+    return ips
+
+def _collect_candidate_ips():
+    ips = []
+
+    def add(ip):
+        if ip and ip not in ips:
+            ips.append(ip)
+
+    for ip in _split_ip_list(LAN_IP):
+        add(ip)
+
+    for host in (("8.8.8.8", 80), ("1.1.1.1", 80)):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.connect(host)
+            add(sock.getsockname()[0])
+        except OSError:
+            pass
+        finally:
+            try:
+                sock.close()
+            except Exception:
+                pass
 
     try:
         hostname = socket.gethostname()
         for info in socket.getaddrinfo(hostname, None, socket.AF_INET):
-            ip = info[4][0]
-            if ip and not ip.startswith("127."):
-                return [ip]
+            add(info[4][0])
     except OSError:
         pass
 
-    return []
+    for ip in _collect_ips_from_ip():
+        add(ip)
+    for ip in _collect_ips_from_ifconfig():
+        add(ip)
+
+    return ips
+
+def _lan_ipv4_list():
+    override_ips = _split_ip_list(LAN_IP)
+    if override_ips:
+        valid_override = []
+        for ip in override_ips:
+            if _ipv4_priority(ip) is not None:
+                valid_override.append(ip)
+        if valid_override:
+            return valid_override
+
+    candidates = []
+    for ip in _collect_candidate_ips():
+        priority = _ipv4_priority(ip)
+        if priority is None:
+            continue
+        candidates.append((priority, ip))
+    if not candidates:
+        return []
+    candidates.sort(key=lambda item: (item[0], item[1]))
+    ordered = []
+    for _, ip in candidates:
+        if ip not in ordered:
+            ordered.append(ip)
+    return ordered
 
 def _print_qr(url):
     try:
@@ -136,6 +272,10 @@ def _load_config():
     if env_history:
         config["history_dir"] = env_history
 
+    env_lan_ip = os.getenv("LAN_IP")
+    if env_lan_ip:
+        config["lan_ip"] = env_lan_ip
+
     env_port = os.getenv("PORT")
     if env_port:
         try:
@@ -143,10 +283,34 @@ def _load_config():
         except ValueError:
             pass
 
+    env_auto_launch = os.getenv("AUTO_LAUNCH_DRAW_THINGS")
+    if env_auto_launch:
+        config["auto_launch_draw_things"] = _bool_config(env_auto_launch, DEFAULT_CONFIG["auto_launch_draw_things"])
+
+    env_app_name = os.getenv("DRAW_THINGS_APP_NAME")
+    if env_app_name:
+        config["draw_things_app_name"] = env_app_name
+
+    env_startup_wait = os.getenv("DRAW_THINGS_STARTUP_WAIT")
+    if env_startup_wait:
+        try:
+            config["draw_things_startup_wait"] = int(env_startup_wait)
+        except ValueError:
+            pass
+
     try:
         config["port"] = int(config.get("port", DEFAULT_CONFIG["port"]))
     except (TypeError, ValueError):
         config["port"] = DEFAULT_CONFIG["port"]
+
+    config["auto_launch_draw_things"] = _bool_config(
+        config.get("auto_launch_draw_things"),
+        DEFAULT_CONFIG["auto_launch_draw_things"],
+    )
+    try:
+        config["draw_things_startup_wait"] = int(config.get("draw_things_startup_wait", DEFAULT_CONFIG["draw_things_startup_wait"]))
+    except (TypeError, ValueError):
+        config["draw_things_startup_wait"] = DEFAULT_CONFIG["draw_things_startup_wait"]
 
     return config
 
@@ -188,15 +352,81 @@ def _draw_things_url_for_payload(payload):
 
     return urlunparse((parsed.scheme, parsed.netloc, full_path, parsed.params, parsed.query, parsed.fragment))
 
+def _draw_things_probe_url():
+    parsed = urlparse(DRAW_THINGS_URL)
+    if not parsed.scheme or not parsed.netloc:
+        return DRAW_THINGS_URL
+    return urlunparse((parsed.scheme, parsed.netloc, "/", "", "", ""))
+
+def _is_local_draw_things_url():
+    parsed = urlparse(DRAW_THINGS_URL)
+    host = (parsed.hostname or "").lower()
+    return host in ("", "localhost", "127.0.0.1", "::1")
+
+def _draw_things_api_reachable(timeout=1.5):
+    try:
+        req = Request(_draw_things_probe_url(), method="GET")
+        with urlopen(req, timeout=timeout):
+            return True
+    except HTTPError:
+        return True
+    except (OSError, URLError, ValueError):
+        return False
+
+def _launch_draw_things_app():
+    if sys.platform != "darwin":
+        print(_t("cli_draw_auto_skip_platform"))
+        return False
+    if not shutil.which("open"):
+        print(_t("cli_draw_auto_skip_open"))
+        return False
+    try:
+        subprocess.Popen(["open", "-a", DRAW_THINGS_APP_NAME])
+        print(_t("cli_draw_launching", {"app": DRAW_THINGS_APP_NAME}))
+        return True
+    except Exception as e:
+        print(_t("cli_draw_launch_failed", {"error": e}))
+        return False
+
+def _ensure_draw_things_available():
+    if not AUTO_LAUNCH_DRAW_THINGS:
+        return
+    if not _is_local_draw_things_url():
+        print(_t("cli_draw_auto_skip_remote", {"url": DRAW_THINGS_URL}))
+        return
+    if _draw_things_api_reachable():
+        print(_t("cli_draw_api_ready", {"url": _draw_things_probe_url()}))
+        return
+
+    if not _launch_draw_things_app():
+        print(_t("cli_draw_api_unavailable", {"url": DRAW_THINGS_URL}))
+        return
+
+    wait_seconds = max(0, int(DRAW_THINGS_STARTUP_WAIT))
+    for _ in range(wait_seconds * 2):
+        if _draw_things_api_reachable():
+            print(_t("cli_draw_api_ready", {"url": _draw_things_probe_url()}))
+            return
+        time_sleep(0.5)
+    print(_t("cli_draw_api_not_ready", {"url": DRAW_THINGS_URL}))
+
 DRAW_THINGS_URL = DEFAULT_CONFIG["draw_things_url"]
 HISTORY_DIR = DEFAULT_CONFIG["history_dir"]
+LAN_IP = DEFAULT_CONFIG["lan_ip"]
 PORT = DEFAULT_CONFIG["port"]
+AUTO_LAUNCH_DRAW_THINGS = DEFAULT_CONFIG["auto_launch_draw_things"]
+DRAW_THINGS_APP_NAME = DEFAULT_CONFIG["draw_things_app_name"]
+DRAW_THINGS_STARTUP_WAIT = DEFAULT_CONFIG["draw_things_startup_wait"]
 
 def _apply_config(config):
-    global DRAW_THINGS_URL, HISTORY_DIR, PORT
+    global DRAW_THINGS_URL, HISTORY_DIR, LAN_IP, PORT, AUTO_LAUNCH_DRAW_THINGS, DRAW_THINGS_APP_NAME, DRAW_THINGS_STARTUP_WAIT
     DRAW_THINGS_URL = _normalize_draw_things_url(config.get("draw_things_url"))
     HISTORY_DIR = config.get("history_dir", DEFAULT_CONFIG["history_dir"])
+    LAN_IP = config.get("lan_ip", DEFAULT_CONFIG["lan_ip"])
     PORT = config.get("port", DEFAULT_CONFIG["port"])
+    AUTO_LAUNCH_DRAW_THINGS = config.get("auto_launch_draw_things", DEFAULT_CONFIG["auto_launch_draw_things"])
+    DRAW_THINGS_APP_NAME = config.get("draw_things_app_name", DEFAULT_CONFIG["draw_things_app_name"])
+    DRAW_THINGS_STARTUP_WAIT = config.get("draw_things_startup_wait", DEFAULT_CONFIG["draw_things_startup_wait"])
 
 def _print_startup():
     line = "=" * 40
@@ -216,6 +446,9 @@ def _print_access_info(port):
     if ips:
         ip = ips[0]
         print(_t("cli_access_lan", {"url": f"http://{ip}:{port}"}))
+        if len(ips) > 1:
+            extras = ", ".join(f"http://{item}:{port}" for item in ips[1:4])
+            print(_t("cli_access_lan_other", {"urls": extras}))
     else:
         print(_t("cli_access_lan_none"))
 
@@ -232,18 +465,171 @@ def _history_state():
     try:
         with os.scandir(HISTORY_DIR) as it:
             for entry in it:
-                if entry.is_file() and entry.name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                if entry.is_file() and entry.name.lower().endswith(IMAGE_EXTENSIONS):
                     items.append((entry.stat().st_mtime, entry.name))
     except OSError:
         pass
     items.sort(key=lambda x: x[0], reverse=True)
-    result = [{"name": name, "url": f"/history/image?name={quote(name)}"} for _, name in items]
+    result = [
+        {
+            "name": name,
+            "url": f"/history/image?name={quote(name)}",
+            "prompt_url": f"/history/prompt?name={quote(name)}",
+        }
+        for _, name in items
+    ]
     return {"enabled": True, "error": "", "items": result}
 
 def _history_file_path(name):
     if not name or name != os.path.basename(name) or ".." in name:
         return None
     return os.path.join(HISTORY_DIR, name)
+
+def _read_png_text_chunks(file_path):
+    chunks = []
+    try:
+        with open(file_path, "rb") as f:
+            if f.read(8) != b"\x89PNG\r\n\x1a\n":
+                return chunks
+            while True:
+                header = f.read(8)
+                if len(header) < 8:
+                    break
+                size, chunk_type = struct.unpack(">I4s", header)
+                if chunk_type in (b"iTXt", b"tEXt", b"zTXt") and size <= 2_000_000:
+                    data = f.read(size)
+                    if chunk_type == b"zTXt":
+                        try:
+                            _, rest = data.split(b"\x00", 1)
+                            compressed = rest[1:]
+                            chunks.append(zlib.decompress(compressed).decode("utf-8", "replace"))
+                        except Exception:
+                            pass
+                    else:
+                        chunks.append(data.decode("utf-8", "replace"))
+                else:
+                    f.seek(size, os.SEEK_CUR)
+                f.seek(4, os.SEEK_CUR)
+                if chunk_type == b"IEND":
+                    break
+    except OSError:
+        pass
+    return chunks
+
+def _json_objects_from_text(text):
+    decoder = json.JSONDecoder()
+    clean = html.unescape(text).replace("\x00", " ")
+    for match in re.finditer(r"\{", clean):
+        try:
+            obj, _ = decoder.raw_decode(clean[match.start():])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(obj, dict):
+            yield obj
+
+def _payload_from_metadata_text(text):
+    for obj in _json_objects_from_text(text):
+        if isinstance(obj.get("c"), str):
+            try:
+                nested = json.loads(obj["c"])
+                if isinstance(nested, dict) and "prompt" in nested:
+                    return nested
+            except json.JSONDecodeError:
+                payload = {"prompt": obj["c"]}
+                if isinstance(obj.get("uc"), str):
+                    payload["negative_prompt"] = obj["uc"]
+                if "steps" in obj:
+                    payload["steps"] = obj["steps"]
+                if "seed" in obj:
+                    payload["seed"] = obj["seed"]
+                if "sampler" in obj:
+                    payload["sampler"] = obj["sampler"]
+                if "scale" in obj:
+                    payload["cfg_scale"] = obj["scale"]
+                if "clip_skip" in obj:
+                    payload["clip_skip"] = obj["clip_skip"]
+                if isinstance(obj.get("size"), str):
+                    match = re.match(r"^(\d+)x(\d+)$", obj["size"])
+                    if match:
+                        payload["width"] = int(match.group(1))
+                        payload["height"] = int(match.group(2))
+                return payload
+        if "prompt" in obj:
+            return obj
+    return None
+
+def _summary_from_metadata_text(text):
+    clean = html.unescape(text)
+    summary = {}
+    patterns = {
+        "actual_seed": r"\bSeed:\s*([^,\n<]+)",
+        "model": r"\bModel:\s*([^,\n<]+)",
+        "size": r"\bSize:\s*([^,\n<]+)",
+        "sampler": r"\bSampler:\s*([^,\n<]+)",
+        "guidance_scale": r"\bGuidance Scale:\s*([^,\n<]+)",
+    }
+    for key, pattern in patterns.items():
+        match = re.search(pattern, clean)
+        if match:
+            summary[key] = match.group(1).strip()
+    return summary
+
+def _history_prompt_state(name):
+    fpath = _history_file_path(name)
+    if not fpath or not os.path.isfile(fpath):
+        return {"enabled": False, "error": "Image not found", "payload": None, "metadata": {}}
+    if not fpath.lower().endswith(".png"):
+        return {"enabled": False, "error": "Prompt metadata is only supported for PNG history images", "payload": None, "metadata": {}}
+
+    metadata = {}
+    for text in _read_png_text_chunks(fpath):
+        payload = _payload_from_metadata_text(text)
+        metadata.update(_summary_from_metadata_text(text))
+        if payload:
+            return {"enabled": True, "error": "", "payload": payload, "metadata": metadata}
+    return {"enabled": False, "error": "Prompt metadata not found", "payload": None, "metadata": metadata}
+
+def _safe_case_slug(value, limit=64):
+    text = os.path.splitext(os.path.basename(str(value)))[0].lower()
+    text = re.sub(r"[^a-z0-9\u4e00-\u9fff]+", "-", text).strip("-")
+    return (text[:limit].strip("-") or "case")
+
+def _archive_rating_case(name, rating, note):
+    if rating not in ("good", "bad"):
+        return {"enabled": False, "error": "Invalid rating"}
+
+    fpath = _history_file_path(name)
+    if not fpath or not os.path.isfile(fpath):
+        return {"enabled": False, "error": "Image not found"}
+
+    prompt_state = _history_prompt_state(name)
+    if not prompt_state.get("enabled") or not prompt_state.get("payload"):
+        return {"enabled": False, "error": "Prompt metadata not found"}
+
+    target_root = os.path.join(STUDIO_DIR, "good_cases" if rating == "good" else "bad_cases")
+    os.makedirs(target_root, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    target_dir = os.path.join(target_root, f"{timestamp}_{_safe_case_slug(name)}")
+    os.makedirs(target_dir, exist_ok=False)
+
+    image_ext = os.path.splitext(fpath)[1].lower() or ".png"
+    shutil.copy2(fpath, os.path.join(target_dir, f"result{image_ext}"))
+
+    with open(os.path.join(target_dir, "prompt.json"), "w", encoding="utf-8") as f:
+        json.dump(prompt_state["payload"], f, ensure_ascii=False, indent=2)
+
+    feedback = {
+        "rating": rating,
+        "note": str(note or "").strip(),
+        "source_image": name,
+        "metadata": prompt_state.get("metadata", {}),
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+    }
+    with open(os.path.join(target_dir, "feedback.json"), "w", encoding="utf-8") as f:
+        json.dump(feedback, f, ensure_ascii=False, indent=2)
+
+    return {"enabled": True, "error": "", "dir": os.path.relpath(target_dir, BASE_DIR)}
 
 class Handler(BaseHTTPRequestHandler):
     def _send(self, status, body, content_type="text/plain; charset=utf-8", headers=None):
@@ -297,7 +683,7 @@ class Handler(BaseHTTPRequestHandler):
 
         # 强制指定 MIME 类型，防止浏览器不加载 CSS/JS
         if path.endswith(".css") or path.endswith(".js") or path.endswith(".json"):
-            file_path = os.path.join(BASE_DIR, path.lstrip("/"))
+            file_path = os.path.join(WEBUI_DIR, path.lstrip("/"))
             if ".." in path: 
                 self._send(403, b"Forbidden")
                 return
@@ -307,7 +693,7 @@ class Handler(BaseHTTPRequestHandler):
                 if path.endswith(".css"): mime = "text/css"
                 elif path.endswith(".js"): mime = "application/javascript"
                 elif path.endswith(".json"): mime = "application/json"
-                self._send_file_cached(file_path, mime, cache_seconds=3600)
+                self._send_file_cached(file_path, mime, cache_seconds=0)
             else:
                 self._send(404, b"Not Found")
             return
@@ -325,6 +711,14 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, json.dumps(state).encode("utf-8"), "application/json", {"Cache-Control": "no-store"})
             return
 
+        if path == "/history/prompt":
+            query = parse_qs(parsed.query)
+            name = query.get("name", [""])[0]
+            state = _history_prompt_state(name)
+            status = 200 if state.get("enabled") else 404
+            self._send(status, json.dumps(state, ensure_ascii=False).encode("utf-8"), "application/json", {"Cache-Control": "no-store"})
+            return
+
         if path == "/history/image":
             query = parse_qs(parsed.query)
             name = query.get("name", [""])[0]
@@ -339,7 +733,31 @@ class Handler(BaseHTTPRequestHandler):
         self._send(404, b"Not Found")
 
     def do_POST(self):
-        if self.path != "/generate":
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        if path == "/history/rating":
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                raw = self.rfile.read(length).decode("utf-8", "replace")
+                data = json.loads(raw or "{}")
+                state = _archive_rating_case(
+                    data.get("name", ""),
+                    data.get("rating", ""),
+                    data.get("note", ""),
+                )
+                status = 200 if state.get("enabled") else 400
+                self._send(status, json.dumps(state, ensure_ascii=False).encode("utf-8"), "application/json", {"Cache-Control": "no-store"})
+            except json.JSONDecodeError:
+                self._send(400, b"Invalid JSON")
+            except FileExistsError:
+                self._send(409, b"Case already exists")
+            except Exception as e:
+                self._send(500, str(e).encode("utf-8"))
+                print(_t("cli_server_error", {"error": e}))
+            return
+
+        if path != "/generate":
             self._send(404, b"Not Found")
             return
         try:
@@ -391,6 +809,7 @@ def main():
     config = _load_config()
     _apply_config(config)
     _print_startup()
+    _ensure_draw_things_available()
     for offset in range(0, 10):
         try:
             server = ThreadingHTTPServer(("0.0.0.0", PORT + offset), Handler)

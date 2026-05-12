@@ -1,0 +1,13 @@
+{
+  "rating": "bad",
+  "note": "胸部太大了",
+  "source_image": "masterpiece__best_quality__ultra_detailed__8k__highres__intricate_details__sharp_focus__anime_style__glossy_skin__warm_dim_lighting__heavy_sweat_and_bodily_fluids_everywhere___1girl__19_3876932297.png",
+  "metadata": {
+    "actual_seed": "3876932297",
+    "model": "janku_v5_nsfw_trainednoobai_v40_f16.ckpt",
+    "size": "768x1152",
+    "sampler": "Euler A Substep",
+    "guidance_scale": "7.5"
+  },
+  "created_at": "2026-05-10T01:59:23"
+}

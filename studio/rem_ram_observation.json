@@ -1,0 +1,15 @@
+{
+  "prompt": "masterpiece, best quality, ultra detailed, 8k, highres, intricate details, sharp focus, professional anime illustration, soft commercial anime style, polished digital art, soft airbrushed shading, \n\n2girls, rem (re:zero), ram (re:zero), maid outfit, maid hairband, \n\n(rem:1.2) with short blue hair and large blue eyes, focused expression of curious observation, leaning in close, \n\n(ram:1.2) with short pink hair and petite flat chest, (undeveloped body:1.2), lying on back with legs spread wide and held back, (knees to chest:1.3), expression of shy trembling arousal, face flushed deep crimson, heavy sweat and tears, \n\n(extreme close-up on vaginal interaction:1.5), (rem's slender fingers deeply inserting into ram's petite vaginal entrance:1.6), (vaginal entrance stretched wide and clinging to fingers:1.5), (plump inner labia pulled thin and glistening:1.4), macro photography perspective, \n\n(abundant clear viscous arousal fluids and glistening strings:1.5) connecting fingers and entrance, realistic fluid reflections, glossy liquid splatter on thighs, wet messy environment, \n\nharsh shadowless clinical light from above, sterile white environment, masterpiece, best quality",
+  "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, username, blurry, deformed, ugly, mutilated, disfigured, mutated hands, poorly drawn hands, poorly drawn face, mutation, extra limbs, malformed limbs, fused fingers, too many fingers, long neck, mosaic, censorship, dry skin, no fluids, no sweat, no tension, static pose, adult, mature woman, older female, curvy, large breasts, cleavage, wide hips, thick body, tall stature, makeup, lipstick, unnatural colors, bad proportions, asymmetrical body, extra arms, extra legs, (plastic skin:1.2), (oily texture:1.2), (over-saturated colors:1.2)",
+  "steps": 40,
+  "width": 768,
+  "height": 1182,
+  "seed": -1,
+  "sampler": "Euler A Substep",
+  "cfg_scale": 7.5,
+  "clip_skip": 2,
+  "tea_cache": false,
+  "tea_cache_start": 5,
+  "tea_cache_end": 0,
+  "tea_cache_threshold": 0.06
+}

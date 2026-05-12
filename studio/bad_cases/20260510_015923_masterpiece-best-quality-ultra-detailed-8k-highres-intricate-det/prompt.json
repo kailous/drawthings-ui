@@ -1,0 +1,11 @@
+{
+  "prompt": "masterpiece, best quality, ultra detailed, 8k, highres, intricate details, sharp focus, anime style, glossy skin, warm dim lighting, heavy sweat and bodily fluids everywhere,\n\n1girl, 19yo cute petite girl, long messy black hair, extreme ahegao face, teary sparkling eyes, tongue out, drooling, lewd expression, completely naked, large heavy breasts with erect nipples,\n\non all fours in doggystyle, man fucking her hard from behind, thick veiny cock deep inside pussy, strong thrusting with visible belly bulge, pussy juice squirting with every thrust,\n\nman's both hands reaching forward and roughly grabbing her hanging breasts, fingers sinking deep into soft tit flesh, breasts heavily deformed and squeezed, pulling her upper body back slightly,\n\nher arms trembling, back arched, ass up high, hips being pulled back onto cock, sweat dripping from body,\n\nfrom side angle + slight low angle, explicit nsfw, vulgar, (intense doggystyle:1.75), (rough breast groping from behind:1.8), (breast deformation and squeezing:1.7), (deep penetration:1.65), (extreme ahegao:1.6), (natural realistic anatomy:1.75), (squirting and fluids splashing:1.65), (submissive petite slut:1.6)",
+  "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, cropped, worst quality, low quality, blurry, deformed, ugly, mosaic, censorship, bar censor, small penis, dry, no fluids, bad proportions, extra limbs, impossible pose, floating hands, unnatural arm reach, twisted spine, dislocated shoulders",
+  "steps": 40,
+  "seed": 3876932297,
+  "sampler": "Euler A Substep",
+  "cfg_scale": 7.5,
+  "clip_skip": 2,
+  "width": 768,
+  "height": 1152
+}

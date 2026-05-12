@@ -1,0 +1,13 @@
+{
+  "rating": "bad",
+  "note": "不够淫荡",
+  "source_image": "professional_anime_illustration__soft_commercial_anime_style__soft_airbrushed_shading__detailed_skin_texture__warm_intimate_lighting__1girl__adult_woman_in_her_20s__cute_petite_face__lon_666643192.png",
+  "metadata": {
+    "actual_seed": "666643192",
+    "model": "janku_v5_nsfw_trainednoobai_v40_f16.ckpt",
+    "size": "768x1152",
+    "sampler": "Euler A Substep",
+    "guidance_scale": "7.5"
+  },
+  "created_at": "2026-05-10T02:31:17"
+}

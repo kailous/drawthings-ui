@@ -1,0 +1,13 @@
+{
+  "rating": "bad",
+  "note": "胸部太大了，但是其他都还好。",
+  "source_image": "masterpiece__best_quality__ultra_detailed__8k__highres__intricate_details__sharp_focus__anime_style__glossy_sweaty_skin__warm_dim_lighting__excessive_pussy_juice_and_sweat___1girl__19yo_4109923626.png",
+  "metadata": {
+    "actual_seed": "4109923626",
+    "model": "janku_v5_nsfw_trainednoobai_v40_f16.ckpt",
+    "size": "768x1152",
+    "sampler": "Euler A Substep",
+    "guidance_scale": "7.5"
+  },
+  "created_at": "2026-05-10T02:10:36"
+}

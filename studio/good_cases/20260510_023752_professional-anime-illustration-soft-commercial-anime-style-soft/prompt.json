@@ -1,0 +1,11 @@
+{
+  "prompt": "professional anime illustration, soft commercial anime style, soft airbrushed shading, detailed skin texture, warm intimate lighting, 1girl, adult woman in her 20s, cute petite face, long messy black hair, extreme flushed lewd ahegao expression, half-closed teary eyes, tongue hanging out drooling, small natural breasts, completely naked, lying on back with legs spread, one hand pulling her pussy open toward viewer, detailed close-up view of wet pink pussy, swollen clit, glistening juices dripping, upper body and spread pussy clearly visible, erotic atmosphere, soft glossy skin",
+  "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, cropped, worst quality, low quality, blurry, deformed, ugly, large breasts, huge breasts, heavy breasts, hanging breasts, oversized chest, breast deformation, belly bulge, x-ray view, cutaway view, internal anatomy view, extra limbs, closed pussy, covered pussy",
+  "steps": 40,
+  "seed": 1583264925,
+  "sampler": "Euler A Substep",
+  "cfg_scale": 7.5,
+  "clip_skip": 2,
+  "width": 768,
+  "height": 1152
+}

@@ -1,0 +1,11 @@
+{
+  "negative_prompt": "lowres, worst quality, low quality, blurry, text, watermark, bad anatomy, bad hands, bad proportions, deformed, extra limbs, missing limbs, fused body, conjoined, duplicate body, bad face, asymmetrical face, cross-eye, large breasts, huge breasts, curvy, thick body, muscular, old, child, underage, teen, teenager, minor, loli, preteen, young-looking, childlike face, school uniform, clothing, clothes, shirt, dress, underwear, bra, panties, covered nipples, covered crotch, explicit sex act, penetration, rubbing genitals, censored, mosaic censoring, plastic skin, oily reflection, over-saturated, heavy makeup, lipstick, cropped body, bad composition",
+  "steps": 30,
+  "width": 1216,
+  "height": 832,
+  "cfg_scale": 4.5,
+  "sampler": "Euler a",
+  "clip_skip": 2,
+  "seed": -1,
+  "prompt": "score_9, score_8_up, masterpiece, best quality, professional anime illustration, soft commercial anime style, soft airbrushed shading, ultra detailed, highres, wide landscape composition, two clearly adult women age 25, blue-haired maid-inspired adult woman and pink-haired maid-inspired adult woman, fully nude, no clothing, no underwear, lying together on a messy bed, passionate kissing, intimate embrace, hands resting on each other's shoulders and waist, soft skin contact, flushed cheeks, half-lidded eyes, seductive expressions, visible nipples, slender adult bodies, small natural breasts, detailed skin texture, subtle sweat sheen, warm intimate bedroom lighting, cinematic rim lighting, dramatic shadows, shallow depth of field, vivid but controlled colors, clean lineart, sharp focus, erotic adult boudoir mood, unobstructed adult body view"
+}

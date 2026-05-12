@@ -1,0 +1,13 @@
+{
+  "rating": "good",
+  "note": "质量不错",
+  "source_image": "masterpiece__best_quality__ultra_detailed__high_resolution__2girls__rem__re_zero___ram__re_zero___blue_hair__pink_hair__short_hair__x_hair_ornament__hair_ribbon__maid_headdress__large_b_2816936933.png",
+  "metadata": {
+    "actual_seed": "2816936933",
+    "model": "janku_v5_nsfw_trainednoobai_v40_f16.ckpt",
+    "size": "1152x768",
+    "sampler": "Euler A Substep",
+    "guidance_scale": "7.5"
+  },
+  "created_at": "2026-05-10T02:14:15"
+}

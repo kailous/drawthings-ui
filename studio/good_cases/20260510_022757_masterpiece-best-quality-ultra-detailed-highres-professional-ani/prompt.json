@@ -1,0 +1,11 @@
+{
+  "prompt": "masterpiece, best quality, ultra detailed, highres, professional anime illustration, soft commercial anime style, soft airbrushed shading, warm intimate bedroom lighting, detailed skin texture, adult woman in her 20s, mature adult proportions, petite slim body, small natural breasts, narrow waist, natural torso, long messy black hair, flushed cheeks, teary sparkling eyes, heavy breathing, shy overwhelmed expression, sitting on bed, knees bent, full body view, whole body visible, from slightly above, natural human pose, balanced anatomy, soft sheets, detailed bedroom background",
+  "negative_prompt": "lowres, bad anatomy, bad hands, bad feet, text, watermark, blurry, deformed, ugly, extra limbs, fused fingers, too many fingers, long neck, broken spine, reversed legs, impossible pose, fused bodies, conjoined bodies, child, teen, preteen, underage, loli, childlike body, undeveloped body, baby face, large breasts, huge breasts, heavy breasts, hanging breasts, breast deformation, belly bulge, x-ray view, cutaway view, internal anatomy view",
+  "steps": 40,
+  "seed": 1921927953,
+  "sampler": "Euler A Substep",
+  "cfg_scale": 7.5,
+  "clip_skip": 2,
+  "width": 768,
+  "height": 1152
+}
