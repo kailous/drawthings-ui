@@ -3,6 +3,14 @@ __pycache__/
 *.py[cod]
 config.json
 local_studio/
+models/
+*.ckpt
+*.safetensors
+*.pt
+*.pth
+*.onnx
+*.bin
+*.gguf
 studio/direct_outputs/
 studio/good_cases/
 studio/bad_cases/

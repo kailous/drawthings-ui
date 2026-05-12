@@ -11,6 +11,7 @@ The project is designed for local use first: generated images, prompt drafts, AP
 - Prompt metadata viewer for PNG history images when metadata is available.
 - Optional local case rating workflow.
 - Direct CLI submission without opening the Web UI.
+- Model search and download helper for Civitai and Hugging Face.
 - LAN address display and optional terminal QR code.
 
 ## Quick Start
@@ -50,6 +51,7 @@ Only `config.example.json` is committed. Your real `config.json` is ignored so m
   "draw_things_url": "http://127.0.0.1:3883",
   "history_dir": "local_studio/history",
   "studio_dir": "local_studio",
+  "models_dir": "local_studio/models",
   "lan_ip": "",
   "port": 8080,
   "auto_launch_draw_things": true,
@@ -63,6 +65,7 @@ Environment overrides:
 - `DRAW_THINGS_URL`
 - `HISTORY_DIR`
 - `STUDIO_DIR`
+- `MODELS_DIR`
 - `LAN_IP`
 - `PORT`
 - `AUTO_LAUNCH_DRAW_THINGS`
@@ -97,6 +100,34 @@ python3 .skill/direct_generate.py "prompt text" --dry-run
 
 By default, direct generation writes local files under `local_studio/`, which is ignored by Git.
 
+## Model Search And Download
+
+Search Civitai:
+
+```bash
+python3 .skill/model_manager.py search "sdxl anime" --provider civitai --type Checkpoint --limit 10
+```
+
+Search Hugging Face:
+
+```bash
+python3 .skill/model_manager.py search "stable diffusion" --provider huggingface --limit 10
+```
+
+Download a selected Civitai model version:
+
+```bash
+python3 .skill/model_manager.py download --provider civitai --version-id 123456
+```
+
+Download a selected Hugging Face file:
+
+```bash
+python3 .skill/model_manager.py download --provider huggingface --repo-id owner/repo --filename model.safetensors
+```
+
+Model downloads default to `local_studio/models/`, which is ignored by Git. Use `CIVITAI_TOKEN`, `CIVITAI_API_TOKEN`, `HF_TOKEN`, or `HUGGINGFACE_TOKEN` for resources that require authentication.
+
 ## Project Layout
 
 - `server.py`: local HTTP server and Draw Things API proxy.
@@ -104,6 +135,7 @@ By default, direct generation writes local files under `local_studio/`, which is
 - `.skill/`: local helper scripts and workflow docs.
 - `studio/`: public tooling placeholders and feedback-analysis code.
 - `local_studio/`: private local payloads, outputs, and archives. This directory is ignored.
+- `local_studio/models/`: private downloaded models. This directory is ignored.
 - `config.example.json`: public configuration template.
 - `config.json`: private local configuration. This file is ignored.
 
@@ -113,6 +145,8 @@ The following are ignored by default:
 
 - `config.json`
 - `local_studio/`
+- `models/`
+- common model file extensions such as `.safetensors`, `.ckpt`, `.pt`, `.onnx`, `.bin`, and `.gguf`
 - `studio/direct_outputs/`
 - generated images in `studio/good_cases/` and `studio/bad_cases/`
 - Python caches and `.DS_Store`
